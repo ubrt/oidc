@@ -17,7 +17,7 @@
  .Parameter scopes
   The scopes requested. Defaults to openid.
 
- .Parameter callBackPortBinding
+ .Parameter callbackPortBinding
   A HttpListener is startet on this port to catch the callback. Defaults to 64433
 
  .Parameter disablePKCE
