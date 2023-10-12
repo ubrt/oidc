@@ -29,68 +29,63 @@
 #>
 function Get-OIDCToken {
     param(
-        [Parameter(Mandatory=$true)][string] $issuerUrl,
-        [Parameter(Mandatory=$true)][string] $clientId,
+        [Parameter(Mandatory = $true)][string] $issuerUrl,
+        [Parameter(Mandatory = $true)][string] $clientId,
         [string] $clientSecret = "",
         [string] $scopes = "openid",
         [int] $callbackPortBinding = 64433,
         [switch] $disablePKCE
-        )
+    )
 
-        $uris = Get-UrisFromDiscovery -discoveryEndpoint ($issuerUrl + ".well-known/openid-configuration")
-        $authUrl = "$($uris.authEndpoint)?client_id=$clientId&response_type=code&scope=$scopes&redirect_uri=http://localhost:$callbackPortBinding/"
+    $uris = Get-UrisFromDiscovery -discoveryEndpoint ($issuerUrl + ".well-known/openid-configuration")
+    $authUrl = "$($uris.authEndpoint)?client_id=$clientId&response_type=code&scope=$scopes&redirect_uri=http://localhost:$callbackPortBinding/"
         
-        if(-not $disablePKCE)
-        {
-            $challenge = Get-PKCEChallenge
-            $authUrl += "&code_challenge=$($challenge.codeChallenge)&code_challenge_method=$($challenge.method)"
-        }
+    if (-not $disablePKCE) {
+        $challenge = Get-PKCEChallenge
+        $authUrl += "&code_challenge=$($challenge.codeChallenge)&code_challenge_method=$($challenge.method)"
+    }
 
-        Start-Process $authUrl
+    Start-Process $authUrl
         
-        $code = Get-CodeFromCallback -callbackPortBinding $callbackPortBinding
+    $code = Get-CodeFromCallback -callbackPortBinding $callbackPortBinding
 
-        $body = @{
-            code = $code
-            grant_type = "authorization_code"
-            client_id = $clientId
-            redirect_uri= "http://localhost:$callbackPortBinding/"
-        }
-        if(-not $disablePKCE)
-        {
-            $body['code_verifier'] = $challenge.codeVerifier
-        }
-        if($clientSecret -ne "")
-        {
-            $body['client_secret'] = $clientSecret
-        }
-        Invoke-RestMethod -Method 'Post' -Uri $uris.tokenEndpoint -Body $body
+    $body = @{
+        code         = $code
+        grant_type   = "authorization_code"
+        client_id    = $clientId
+        redirect_uri = "http://localhost:$callbackPortBinding/"
+    }
+    if (-not $disablePKCE) {
+        $body['code_verifier'] = $challenge.codeVerifier
+    }
+    if ($clientSecret -ne "") {
+        $body['client_secret'] = $clientSecret
+    }
+    Invoke-RestMethod -Method 'Post' -Uri $uris.tokenEndpoint -Body $body
 }
 
-function Get-PKCEChallenge{
+function Get-PKCEChallenge {
     
-    $codeVerifier =  Get-RandomBase64String
+    $codeVerifier = Get-RandomBase64String
     $codeChallenge = Get-CodeChallenge -codeVerifier $codeVerifier
 
     @{
-        "codeVerifier" = $codeVerifier;
+        "codeVerifier"  = $codeVerifier;
         "codeChallenge" = $codeChallenge;
-        "method" = "S256"
+        "method"        = "S256"
     }
 }
 
-function Get-RandomBase64String
-{
+function Get-RandomBase64String {
     $codeVerifierBytes = New-Object byte[] 32
     $random = [System.Security.Cryptography.RandomNumberGenerator]::Create()
     $random.GetBytes($codeVerifierBytes)
     [Convert]::ToBase64String($codeVerifierBytes) -replace '\+', '-' -replace '/', '_' -replace '=', ''
 }
 
-function Get-CodeChallenge
-{
+function Get-CodeChallenge {
     param(
-        [Parameter(Mandatory=$true)][string] $codeVerifier
+        [Parameter(Mandatory = $true)][string] $codeVerifier
     )
     $sha256 = [System.Security.Cryptography.SHA256]::Create()
     $codeVerifierBytes = [System.Text.Encoding]::UTF8.GetBytes($codeVerifier)
@@ -99,28 +94,27 @@ function Get-CodeChallenge
     $codeChallenge -replace '\+', '-' -replace '/', '_' -replace '=', ''
 }
 
-function Get-UrisFromDiscovery{
+function Get-UrisFromDiscovery {
     param(
-        [Parameter(Mandatory=$true)][string] $discoveryEndpoint
-        )
+        [Parameter(Mandatory = $true)][string] $discoveryEndpoint
+    )
     $discoveryResponse = Invoke-RestMethod -Method 'Get' -Uri $discoveryEndpoint
 
     @{
-        'authEndpoint' = $discoveryResponse.authorization_endpoint;
+        'authEndpoint'  = $discoveryResponse.authorization_endpoint;
         'tokenEndpoint' = $discoveryResponse.token_endpoint
     }
 }
 
-function Get-CodeFromCallback{
+function Get-CodeFromCallback {
     param(
-        [Parameter(Mandatory=$true)][int] $callbackPortBinding
-        )
+        [Parameter(Mandatory = $true)][int] $callbackPortBinding
+    )
     $httpListener = New-Object System.Net.HttpListener
     $httpListener.Prefixes.Add("http://localhost:$callbackPortBinding/")
     $httpListener.Start()
     $context = $httpListener.GetContext()
     $query = $context.Request.Url.Query
-    Write-Host $query
     $codeMatcher = "code=([A-Za-z0-9\-.]+)"
     $query -match $codeMatcher | Out-Null
     $code = $matches[1]
