@@ -37,4 +37,3 @@ This script uses System.Net.HttpListener on Port 64433 to catch the code from th
 
  .Parameter disablePKCE
   Disables the proof key for code exchange. This should only be disabled if the authority doesn't support pkce.
-

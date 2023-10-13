@@ -1,4 +1,4 @@
-Import-Module ./OIDC.psm1
+Import-Module ./OIDC.psd1
 
 # Example for keycloak 
 $issuerUrl="http://localhost:8080/realms/master/"
