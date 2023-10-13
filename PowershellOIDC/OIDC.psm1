@@ -27,6 +27,8 @@
    # Request a set of tokens
    Get-OIDCToken -issuerUrl https://issuer.base -clientId 12345 -clientSecret "secret"
 #>
+$ErrorActionPreference = "stop"
+
 function Get-OIDCToken {
     param(
         [Parameter(Mandatory = $true)][string] $issuerUrl,
@@ -61,7 +63,12 @@ function Get-OIDCToken {
     if ($clientSecret -ne "") {
         $body['client_secret'] = $clientSecret
     }
-    Invoke-RestMethod -Method 'Post' -Uri $uris.tokenEndpoint -Body $body
+    try{
+        Invoke-RestMethod -Method 'Post' -Uri $uris.tokenEndpoint -Body $body
+    }catch{
+        Write-Host "Error: Could not exchange code for tokens. Error was: $_" -ForegroundColor Red
+        exit 1
+    }
 }
 
 function Get-PKCEChallenge {
@@ -98,7 +105,17 @@ function Get-UrisFromDiscovery {
     param(
         [Parameter(Mandatory = $true)][string] $discoveryEndpoint
     )
-    $discoveryResponse = Invoke-RestMethod -Method 'Get' -Uri $discoveryEndpoint
+
+    try {
+        $discoveryResponse = Invoke-RestMethod -Method 'Get' -Uri  $discoveryEndpoint
+        if ($null -eq $discoveryResponse.authorization_endpoint -or $null -eq $discoveryResponse.token_endpoint) {
+            throw "Discovery response did not contain expected attributes (authorization_endpoint, token_endpoint)."
+        }
+    }
+    catch {
+        Write-Host "Error: Could not get uris from endpoint $discoveryEndpoint. Error was: $_" -ForegroundColor Red
+        exit 1
+    }
 
     @{
         'authEndpoint'  = $discoveryResponse.authorization_endpoint;
@@ -123,6 +140,10 @@ function Get-CodeFromCallback {
     $context.Response.Close()
     $httpListener.Stop()
     $queryParameters = [System.Web.HttpUtility]::ParseQueryString($query)
+    if ($null -eq $queryParameters['code']) {
+        Write-Host "Error: No code received from authority. Response was: $($query)" -ForegroundColor Red
+        exit 1
+    }
     $queryParameters['code']
 }
 
