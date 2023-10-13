@@ -115,18 +115,15 @@ function Get-CodeFromCallback {
     $httpListener.Start()
     $context = $httpListener.GetContext()
     $query = $context.Request.Url.Query
-    $codeMatcher = "code=([A-Za-z0-9\-.]+)"
-    $query -match $codeMatcher | Out-Null
-    $code = $matches[1]
     $context.Response.StatusCode = 200
     $context.Response.ContentType = 'text/html; charset=utf-8'
-    $responseHTML = '<script>window.close();</script>'
+    $responseHTML = '<html><head><script>window.setTimeout(() => window.close(),200);</script></head></html>'
     $responseBytes = [System.Text.Encoding]::UTF8.GetBytes($responseHTML)
     $context.Response.OutputStream.Write($responseBytes, 0, $responseBytes.Length)
     $context.Response.Close()
     $httpListener.Stop()
-
-    $code
+    $queryParameters = [System.Web.HttpUtility]::ParseQueryString($query)
+    $queryParameters['code']
 }
 
 Export-ModuleMember -Function Get-OIDCToken
