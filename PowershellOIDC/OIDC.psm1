@@ -21,7 +21,7 @@
   A HttpListener is startet on this port to catch the callback. Defaults to 64433
 
  .Parameter disablePKCE
-  Disables the proof key for code exchange. This should only disable if the authority doesn't support pkce.
+  Disables the proof key for code exchange. This should only be disabled if the authority doesn't support pkce.
 
  .Example
    # Request a set of tokens
@@ -63,9 +63,10 @@ function Get-OIDCToken {
     if ($clientSecret -ne "") {
         $body['client_secret'] = $clientSecret
     }
-    try{
+    try {
         Invoke-RestMethod -Method 'Post' -Uri $uris.tokenEndpoint -Body $body
-    }catch{
+    }
+    catch {
         Write-Host "Error: Could not exchange code for tokens. Error was: $_" -ForegroundColor Red
         exit 1
     }

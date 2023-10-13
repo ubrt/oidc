@@ -14,3 +14,7 @@ $clientSecret="yLFbpDi1adVMCPrUGYca4zdjX9Wn5nkJ"
 Get-OIDCToken -issuerUrl $issuerUrl -clientId $clientId -clientSecret $clientSecret
 ```
 
+## Callback
+
+This script uses System.Net.HttpListener on Port 64433 to catch the code from the callback response. If this port is already taken on your pc, please specify another port via the -callbackPortBinding parameter. Please also add the local callback url http://localhost:64433/ to the valid redirect uris setting of your identity provider client config.
+
