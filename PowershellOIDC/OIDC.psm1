@@ -26,6 +26,8 @@
  .Example
    # Request a set of tokens
    Get-OIDCToken -issuerUrl https://issuer.base -clientId 12345 -clientSecret "secret"
+   # Docs
+   https://github.com/ubrt/oidc/tree/main/PowershellOIDC
 #>
 $ErrorActionPreference = "stop"
 
@@ -95,6 +97,7 @@ function Get-CodeChallenge {
     param(
         [Parameter(Mandatory = $true)][string] $codeVerifier
     )
+
     $sha256 = [System.Security.Cryptography.SHA256]::Create()
     $codeVerifierBytes = [System.Text.Encoding]::UTF8.GetBytes($codeVerifier)
     $codeChallengeBytes = $sha256.ComputeHash($codeVerifierBytes)
@@ -128,23 +131,30 @@ function Get-CodeFromCallback {
     param(
         [Parameter(Mandatory = $true)][int] $callbackPortBinding
     )
+
     $httpListener = New-Object System.Net.HttpListener
     $httpListener.Prefixes.Add("http://localhost:$callbackPortBinding/")
     $httpListener.Start()
+    
     $context = $httpListener.GetContext()
     $query = $context.Request.Url.Query
+    
     $context.Response.StatusCode = 200
     $context.Response.ContentType = 'text/html; charset=utf-8'
     $responseHTML = '<html><head><script>window.setTimeout(() => window.close(),200);</script></head></html>'
     $responseBytes = [System.Text.Encoding]::UTF8.GetBytes($responseHTML)
     $context.Response.OutputStream.Write($responseBytes, 0, $responseBytes.Length)
+    
     $context.Response.Close()
     $httpListener.Stop()
+    
     $queryParameters = [System.Web.HttpUtility]::ParseQueryString($query)
+   
     if ($null -eq $queryParameters['code']) {
         Write-Host "Error: No code received from authority. Response was: $($query)" -ForegroundColor Red
         exit 1
     }
+
     $queryParameters['code']
 }
 
