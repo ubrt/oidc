@@ -12,8 +12,9 @@ This is a simple extension of the keycloak.v2 admin theme to display a marker la
         * test (blue)
         * staging (yellow)
         * production (red) (default)
-* Add additional css files to "<keycloakdir>/themes/envmarker/resources/css".
+* Optional: Add additional css files to "<keycloakdir>/themes/envmarker/resources/css".
     * Replace content and color to your needs.
+* Set envmarker as Admin theme (Realm-Settings/Themes)
 
 ```css
 /* admin/resources/css/production.css */
