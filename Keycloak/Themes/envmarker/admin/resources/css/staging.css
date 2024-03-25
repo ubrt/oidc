@@ -1,4 +1,5 @@
 .pf-c-page__header:after {
     background: yellow;
-    content: "Staging";   
+    content: "Staging";
+    color: black;
 }
