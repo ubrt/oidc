@@ -1,6 +1,6 @@
 ## Environment markers for Keycloak
 This is a simple extension of the keycloak.v2 admin theme to display a marker label for the current environment.
-<br/>
+<br/><br/>
 ![Screenshot](img/screenshot.png?raw=true "Keycloak Backend")
 
 ## Installation
