@@ -11,7 +11,7 @@ This is a simple extension of the keycloak.v2 admin theme to display a marker la
         * development (green)
         * test (blue)
         * staging (yellow)
-        * production (red)
+        * production (red) (default)
 * Add additional css files to "<keycloakdir>/themes/envmarker/resources/css".
     * Replace content and color to your needs.
 
