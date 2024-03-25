@@ -14,12 +14,11 @@ This is a simple extension of the keycloak.v2 admin theme to display a marker la
         * production (red) (default)
 * Optional: Add additional css files to "<keycloakdir>/themes/envmarker/resources/css".
     * Replace content and color to your needs.
+   ```css
+   /* admin/resources/css/production.css */
+   .pf-c-page__header:after {
+       background: red;
+       content: "Production";   
+   }
+   ```
 * Set envmarker as Admin theme (Realm-Settings/Themes)
-
-```css
-/* admin/resources/css/production.css */
-.pf-c-page__header:after {
-    background: red;
-    content: "Production";   
-}
-```
